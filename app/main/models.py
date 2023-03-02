@@ -89,7 +89,7 @@ class Medication(TimestampModel):
         help_text='Only uppercase alphanumeric characters and underscores'
     )
     image = models.ImageField(upload_to='uploads/medications/%Y/%m/%d/')
-    drone = models.ForeignKey(Drone, on_delete=models.CASCADE, related_name='medications')
+    drone = models.ForeignKey(Drone, on_delete=models.SET_NULL, null=True, related_name='medications')
 
     class Meta:
         verbose_name = 'medication'
