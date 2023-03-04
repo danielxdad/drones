@@ -17,6 +17,6 @@ class DroneAdmin(admin.ModelAdmin):
 
 @admin.register(Medication)
 class MedicationAdmin(admin.ModelAdmin):
-    list_display = ['name', 'weight', 'code']
+    list_display = ['name', 'weight', 'code', 'drone']
     search_fields = ['name', 'code']
     list_filter = ['drone']
