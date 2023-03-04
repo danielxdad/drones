@@ -1,6 +1,17 @@
+from django.conf import settings
 from django.db import models
-from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
+from django.db.models import Sum
+from django.core.validators import (
+    MaxValueValidator,
+    MinValueValidator,
+    RegexValidator
+)
 
+from .exceptions import (
+    WeightExceededError,
+    DroneInvalidStateError,
+    DroneBaterryTooLowError
+)
 
 class TimestampModel(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
@@ -72,6 +83,61 @@ class Drone(TimestampModel):
 
     def __str__(self) -> str:
         return self.serial_number
+    
+    @property
+    def current_weight(self):
+        return self.medications.aggregate(Sum('weight'))['weight__sum'] or 0
+
+    def set_state(self, new_state: str) -> None:
+        """
+        Set a valid new state for the drone 
+        """
+        # Some kind of finite state machine to check the flow state of the drone
+        fsm_transition_states = {
+            Drone.STATE_IDLE: [Drone.STATE_LOADING],
+            Drone.STATE_LOADING: [Drone.STATE_LOADED, Drone.STATE_IDLE],
+            Drone.STATE_LOADED: [Drone.STATE_DELIVERING, Drone.STATE_LOADING, Drone.STATE_IDLE],
+            Drone.STATE_DELIVERING: [Drone.STATE_DELIVERED, Drone.STATE_RETURNING],
+            Drone.STATE_DELIVERED: [Drone.STATE_RETURNING],
+            Drone.STATE_RETURNING: [Drone.STATE_IDLE]
+        }
+
+        # If the new state is not inside the valid states that can fallow the current state
+        if new_state not in fsm_transition_states.get(self.state):
+            # Don't let user change the state
+            raise DroneInvalidStateError()
+        
+        # If the new state is LOADING and the drone battery capacity is less than "settings.DRON_BATERRY_THRESHOLD"
+        if new_state == Drone.STATE_LOADING and self.battery_capacity < settings.DRON_BATERRY_THRESHOLD:
+            # Don't let user change the state
+            raise DroneBaterryTooLowError()
+
+        self.state = new_state
+        self.save()
+    
+    def load_medication_item(self, medication_item: 'Medication') -> None:
+        """
+        Load medication item to the drone, throw an exception in case of error.
+
+            Parameters:
+                medication_item (Medication): A medication item to load
+
+            Exceptions:
+                WeightExceededError: If the weight of the medication item exceeds the maximum drone's weight
+                TypeError: If the medication_item is not an instance of Medication model
+
+            Returns:
+                None: Nothing is returned
+        """
+
+        if isinstance(medication_item, Medication) is False:
+            raise TypeError('medication_item must be an instance of Medication model.')
+
+        if self.current_weight + medication_item.weight > self.weight_limit:
+            raise WeightExceededError()
+
+        medication_item.drone = self
+        medication_item.save()
 
 
 class Medication(TimestampModel):
@@ -88,8 +154,8 @@ class Medication(TimestampModel):
         validators=[RegexValidator(r'^[A-Z0-9\_]*$')],
         help_text='Only uppercase alphanumeric characters and underscores'
     )
-    image = models.ImageField(upload_to='uploads/medications/%Y/%m/%d/')
-    drone = models.ForeignKey(Drone, on_delete=models.SET_NULL, null=True, related_name='medications')
+    image = models.ImageField(upload_to='uploads/medications/%Y/%m/%d/', blank=True)
+    drone = models.ForeignKey(Drone, on_delete=models.SET_NULL, null=True, blank=True, related_name='medications')
 
     class Meta:
         verbose_name = 'medication'
