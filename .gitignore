@@ -1,0 +1,7 @@
+db.sqlite3
+*.pyc
+venv/
+__pycache__/
+app/media/
+app/static/
+.coverage
