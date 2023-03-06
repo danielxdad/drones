@@ -1,5 +1,9 @@
+import sys
+from io import StringIO
+
 from django.test import TestCase, Client
 from django.urls import reverse
+from django.core.management import call_command
 
 from .models import Drone, Medication
 from .exceptions import DroneBaterryTooLowError, DroneInvalidStateError
@@ -226,3 +230,20 @@ class DroneTestCase(TestCase):
         self.assertEqual(response.json()[0]['id'], self.med_item.pk)
         self.assertEqual(response.json()[0]['name'], self.med_item.name)
         self.assertEqual(response.json()[0]['code'], self.med_item.code)
+
+    def test_check_drones_baterry_command(self):
+        """
+        Test check_drones_baterry command
+        """
+        stdout = sys.stdout
+
+        sys.stdout = StringIO()
+
+        call_command('check_drones_baterry')
+        
+        output = sys.stdout.getvalue()
+        
+        sys.stdout = stdout
+
+        self.assertIn('Drone DRONE_1 has enough battery to fly', output)
+        self.assertIn('Drone DRON_LOW_BATERRY has low battery', output)
