@@ -59,9 +59,9 @@ In order to run the application.
 
     This fixture is imported when the tests are executed.
 
-11. There is a custom command called "check_drones_baterry" related to the task, can by run:
+11. There is a custom command called "check_drones_battery" related to the task, can by run:
     ```
-    python manage.py check_drones_baterry
+    python manage.py check_drones_battery
     ```
 
 

@@ -10,12 +10,12 @@ from .serializers import (
     MedicationSerializer,
     IDMedicationSerializer,
     DronStateSerializer,
-    DronBaterrySerializer
+    DronBatterySerializer
 )
 from .exceptions import (
     WeightExceededError,
     DroneInvalidStateError,
-    DroneBaterryTooLowError
+    DroneBatteryTooLowError
 )
 
 
@@ -33,7 +33,7 @@ class DroneViewset(viewsets.ModelViewSet):
 
         try:
             drone.set_state(serializer.validated_data['state'])
-        except (DroneInvalidStateError, DroneBaterryTooLowError) as err:
+        except (DroneInvalidStateError, DroneBatteryTooLowError) as err:
             return Response(
                 {'detail': err.message},
                 status=status.HTTP_400_BAD_REQUEST
@@ -111,7 +111,7 @@ class DroneViewset(viewsets.ModelViewSet):
         """
         available_drones = filter(
             lambda drone: drone.state in [Drone.STATE_IDLE, Drone.STATE_LOADING] 
-                and drone.battery_capacity >= settings.DRON_BATERRY_THRESHOLD
+                and drone.battery_capacity >= settings.DRON_BATTERY_THRESHOLD
                 and drone.current_weight < drone.weight_limit,
             self.get_queryset()
         )
@@ -120,13 +120,13 @@ class DroneViewset(viewsets.ModelViewSet):
         serializer = serializer_class(available_drones, many=True, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
     
-    @action(detail=True, methods=['get'], serializer_class=DronBaterrySerializer)
-    def get_baterry(self, request, *args, **kwargs):
+    @action(detail=True, methods=['get'], serializer_class=DronBatterySerializer)
+    def get_battery(self, request, *args, **kwargs):
         """
-        Get baterry lavel of the drone
+        Get batterry lavel of the drone
 
             Returns:
-                Response: Baterry lavel of the drone
+                Response: Battery lavel of the drone
         """
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(self.get_object(), context={'request': request})

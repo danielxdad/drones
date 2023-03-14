@@ -10,7 +10,7 @@ from django.core.validators import (
 from .exceptions import (
     WeightExceededError,
     DroneInvalidStateError,
-    DroneBaterryTooLowError
+    DroneBatteryTooLowError
 )
 
 class TimestampModel(models.Model):
@@ -107,10 +107,10 @@ class Drone(TimestampModel):
             # Don't let user change the state
             raise DroneInvalidStateError()
         
-        # If the new state is LOADING and the drone battery capacity is less than "settings.DRON_BATERRY_THRESHOLD"
-        if new_state == Drone.STATE_LOADING and self.battery_capacity < settings.DRON_BATERRY_THRESHOLD:
+        # If the new state is LOADING and the drone battery capacity is less than "settings.DRON_BATTERY_THRESHOLD"
+        if new_state == Drone.STATE_LOADING and self.battery_capacity < settings.DRON_BATTERY_THRESHOLD:
             # Don't let user change the state
-            raise DroneBaterryTooLowError()
+            raise DroneBatteryTooLowError()
 
         self.state = new_state
         self.save()

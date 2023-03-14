@@ -6,7 +6,7 @@ from django.urls import reverse
 from django.core.management import call_command
 
 from .models import Drone, Medication
-from .exceptions import DroneBaterryTooLowError, DroneInvalidStateError
+from .exceptions import DroneBatteryTooLowError, DroneInvalidStateError
 
 class DroneTestCase(TestCase):
     """
@@ -20,7 +20,7 @@ class DroneTestCase(TestCase):
         )
 
         self.drone_1 = Drone.objects.get(serial_number='DRONE_1')
-        self.dron_low_baterry = Drone.objects.get(serial_number='DRON_LOW_BATERRY')
+        self.dron_low_battery = Drone.objects.get(serial_number='DRON_LOW_BATTERY')
 
         self.med_item = Medication.objects.get(code='ASP_755')
         self.med_item_to_heavy = Medication.objects.get(code='TO_HEAVY_ITEM')
@@ -116,12 +116,12 @@ class DroneTestCase(TestCase):
         self.drone_1.set_state(Drone.STATE_IDLE)
         self.assertEqual(self.drone_1.state, Drone.STATE_IDLE)
 
-    def test_set_state_drone_baterry_too_low(self):
+    def test_set_state_drone_battery_too_low(self):
         """
-        Test set new state for a drone with low baterry
+        Test set new state for a drone with low battery
         """
-        with self.assertRaises(DroneBaterryTooLowError):
-            self.dron_low_baterry.set_state(Drone.STATE_LOADING)
+        with self.assertRaises(DroneBatteryTooLowError):
+            self.dron_low_battery.set_state(Drone.STATE_LOADING)
 
     def test_drone_list_view(self):
         """
@@ -136,10 +136,10 @@ class DroneTestCase(TestCase):
         ids, serial_number = zip(*map(lambda d: (d['id'], d['serial_number']), response.json()))
 
         self.assertIn(self.drone_1.id, ids)
-        self.assertIn(self.dron_low_baterry.id, ids)
+        self.assertIn(self.dron_low_battery.id, ids)
 
         self.assertIn(self.drone_1.serial_number, serial_number)
-        self.assertIn(self.dron_low_baterry.serial_number, serial_number)
+        self.assertIn(self.dron_low_battery.serial_number, serial_number)
 
     def test_get_available_drones_for_load(self):
         """
@@ -156,12 +156,12 @@ class DroneTestCase(TestCase):
         self.assertIn(self.drone_1.id, ids)
         self.assertIn(self.drone_1.serial_number, serial_number)
 
-    def test_get_drone_baterry(self):
+    def test_get_drone_battery(self):
         """
-        Test drone baterry endpoint
+        Test drone battery endpoint
         """
         response = self.client.get(
-            reverse('drone-get-baterry', kwargs={'pk': self.drone_1.pk})
+            reverse('drone-get-battery', kwargs={'pk': self.drone_1.pk})
         )
 
         self.assertEqual(response.status_code, 200)
@@ -231,19 +231,19 @@ class DroneTestCase(TestCase):
         self.assertEqual(response.json()[0]['name'], self.med_item.name)
         self.assertEqual(response.json()[0]['code'], self.med_item.code)
 
-    def test_check_drones_baterry_command(self):
+    def test_check_drones_battery_command(self):
         """
-        Test check_drones_baterry command
+        Test check_drones_battery command
         """
         stdout = sys.stdout
 
         sys.stdout = StringIO()
 
-        call_command('check_drones_baterry')
+        call_command('check_drones_battery')
         
         output = sys.stdout.getvalue()
         
         sys.stdout = stdout
 
         self.assertIn('Drone DRONE_1 has enough battery to fly', output)
-        self.assertIn('Drone DRON_LOW_BATERRY has low battery', output)
+        self.assertIn('Drone DRON_LOW_BATTERY has low battery', output)

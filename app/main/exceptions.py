@@ -26,5 +26,5 @@ class DroneInvalidStateError(AppBaseException):
     message = "The new state is invalid."
 
 
-class DroneBaterryTooLowError(AppBaseException):
+class DroneBatteryTooLowError(AppBaseException):
     message = "The dron's battery is too low to fly."

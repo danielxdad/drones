@@ -30,7 +30,7 @@ class DronStateSerializer(serializers.ModelSerializer):
         fields = ['state']
 
 
-class DronBaterrySerializer(serializers.ModelSerializer):
+class DronBatterySerializer(serializers.ModelSerializer):
     class Meta:
         model = Drone
         fields = ['battery_capacity']

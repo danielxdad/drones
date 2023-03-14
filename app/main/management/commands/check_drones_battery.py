@@ -11,9 +11,9 @@ class Command(BaseCommand):
         # Here we can send a notification to users by an email, sms, a whatsapp message, slack, telegram, etc.
         # For now is only a console output
         for drone in Drone.objects.all():
-            if drone.battery_capacity < settings.DRON_BATERRY_THRESHOLD:
+            if drone.battery_capacity < settings.DRON_BATTERY_THRESHOLD:
                 self.stdout.write(self.style.WARNING(f'Drone {drone.serial_number} has low battery'))
-            elif drone.battery_capacity < (settings.DRON_BATERRY_THRESHOLD // 3):
+            elif drone.battery_capacity < (settings.DRON_BATTERY_THRESHOLD // 3):
                 self.stdout.write(self.style.ERROR(f'Drone {drone.serial_number} has critical battery'))
             else:
                 self.stdout.write(self.style.SUCCESS(f'Drone {drone.serial_number} has enough battery to fly'))
