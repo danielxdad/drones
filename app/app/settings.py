@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'rest_framework',
+    'drf_spectacular',
 
     'main',
 ]
@@ -132,4 +133,15 @@ MEDIA_ROOT = Path(BASE_DIR).joinpath('media')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-DRON_BATERRY_THRESHOLD = 25
+DRON_BATTERY_THRESHOLD = 25
+
+REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Drones API',
+    'DESCRIPTION': 'Drones API task challenge',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+}
